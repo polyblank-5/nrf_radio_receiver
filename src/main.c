@@ -122,7 +122,7 @@ void radio_receive(struct esbPacket_s *data, uint8_t *length) {
 }
 
 int main(void) {
-    nrf_gpio_cfg_output(20); // LED on pin 20
+    nrf_gpio_cfg_output(6); // LED on pin 20
 
     radio_init();
 

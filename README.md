@@ -20,6 +20,10 @@ pip install -r zephyr/scripts/requirements.txt
 west build -b nrf52840dongle_nrf52840 -- -DDTC_OVERLAY_FILE=boards/arm/nrf52840dongle_nrf52840.overlay
 ```
 
+## Bootloader
+```
+https://devzone.nordicsemi.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-00-13/pca10059_5F00_bootloader.zip
+```
 
 # ESB / RADIO Examples
 

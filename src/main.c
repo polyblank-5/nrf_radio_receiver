@@ -8,6 +8,7 @@
 #include <zephyr/sys/printk.h>
 #include <hal/nrf_radio.h>
 #include <zephyr/irq.h>
+#include <nrfx_timer.h>
 
 /* Public API */
 
@@ -59,66 +60,70 @@ static uint32_t bytewise_bitswap(uint32_t inp)
 
 #define RADIO_CHANNEL 80  // Should match the transmitter's channel
 static void radio_isr(void *arg){
-    
+    __NOP();
 }
-
+/*  TODO Config of Radio changes during runtime have to check that 
+    Atleast the frequency changes during runtime probably address to and stuff 
+*/
 void radio_init(void) {
-     NRF_RADIO->POWER = 1;
+    nrf_timer_bit_width_set(NRF_TIMER0, NRF_TIMER_BIT_WIDTH_32);
+    nrf_timer_frequency_set(NRF_TIMER0, NRF_TIMER_FREQ_1MHz);
+    nrf_timer_task_trigger(NRF_TIMER0, NRF_TIMER_TASK_CLEAR);
+    nrf_timer_task_trigger(NRF_TIMER0, NRF_TIMER_TASK_START);
 
+    nrf_radio_power_set(NRF_RADIO, true);
 
-    NRF_RADIO->TXPOWER = (RADIO_TXPOWER_TXPOWER_0dBm << RADIO_TXPOWER_TXPOWER_Pos);
+    nrf_radio_txpower_set(NRF_RADIO, NRF_RADIO_TXPOWER_0DBM);
 
+    // Low level packet configuration
+    nrf_radio_packet_conf_t radioConfig = {0,};
+    radioConfig.lflen = 6;
+    radioConfig.s0len = 0;
+    radioConfig.s1len = 3;
+    radioConfig.maxlen = 64; //32 in original
+    radioConfig.statlen = 0;
+    radioConfig.balen = 4;
+    radioConfig.big_endian = true;
+    radioConfig.whiteen = false;
+    nrf_radio_packet_configure(NRF_RADIO, &radioConfig);
 
-        NRF_RADIO->MODE = (RADIO_MODE_MODE_Nrf_2Mbit << RADIO_MODE_MODE_Pos);
+    // Configure channel and bitrate
+    nrf_radio_mode_set(NRF_RADIO, NRF_RADIO_MODE_NRF_2MBIT); // 1 byte Preamble len 0xAA or 0x55 
+    nrf_radio_frequency_set(NRF_RADIO, 2480); //80 for fly 2447 in original //TODO have to check if 80 is correct maybe 2480 or someting
 
+    /*// Configure Addresses
+    nrf_radio_base0_set(NRF_RADIO, 0xe7e7e7e7); // 0xE7E7E7E7 for fly
+    nrf_radio_prefix0_set(NRF_RADIO, 0x000000e7);
+    nrf_radio_txaddress_set(NRF_RADIO, 0);
+    nrf_radio_rxaddresses_set(NRF_RADIO, 0x01u);
+    */
+    // Should be correct, doenst work with vanilla 
+    uint64_t address = 0xE7E7E7E7E7ULL;
+    nrf_radio_base0_set(NRF_RADIO,bytewise_bitswap((uint32_t)address));
+    nrf_radio_base1_set(NRF_RADIO, 0xE7E7E7E7UL);
+    nrf_radio_prefix0_set(NRF_RADIO,0xC4C3FF00UL | (bytewise_bitswap(address >> 32) & 0xFF));
+    nrf_radio_prefix1_set(NRF_RADIO,0xC5C6C7C8UL);
+    nrf_radio_txaddress_set(NRF_RADIO, 0);
+    nrf_radio_rxaddresses_set(NRF_RADIO, (1<<0) | (1<<1));    
+    
 
-    NRF_RADIO->FREQUENCY = 80;
+    // Configure CRC
+    nrf_radio_crc_configure(NRF_RADIO, 2, NRF_RADIO_CRC_ADDR_INCLUDE, 0x11021UL);
+    nrf_radio_crcinit_set(NRF_RADIO, 0xfffful);
+    // same as in the fly 
 
-
-    // Radio address config
-    // We use local addresses 0 and 1
-    //  * local address 0 is the unique address of the Crazyflie, used for 1-to-1 communication.
-    //    This can be set dynamically and the current address is stored in EEPROM.
-    //  * local address 1 is used for broadcasts
-    //    This is currently 0xFFE7E7E7E7.
-    NRF_RADIO->PREFIX0 = 0xC4C3FF00UL | (bytewise_bitswap(address >> 32) & 0xFF);  // Prefix byte of addresses 3 to 0
-    NRF_RADIO->PREFIX1 = 0xC5C6C7C8UL;  // Prefix byte of addresses 7 to 4
-    NRF_RADIO->BASE0   = bytewise_bitswap((uint32_t)address);  // Base address for prefix 0
-    NRF_RADIO->BASE1   = 0xE7E7E7E7UL;  // Base address for prefix 1-7
-    NRF_RADIO->TXADDRESS = 0x00UL;      // Set device address 0 to use when transmitting
-    NRF_RADIO->RXADDRESSES = (1<<0) | (1<<1);    // Enable device address 0 and 1 to use which receiving
-
-    // Packet configuration
-    NRF_RADIO->PCNF0 = (PACKET0_S1_SIZE << RADIO_PCNF0_S1LEN_Pos) |
-                        (PACKET0_S0_SIZE << RADIO_PCNF0_S0LEN_Pos) |
-                        (PACKET0_PAYLOAD_SIZE << RADIO_PCNF0_LFLEN_Pos);
-
-    // Packet configuration
-    NRF_RADIO->PCNF1 = (RADIO_PCNF1_WHITEEN_Disabled << RADIO_PCNF1_WHITEEN_Pos)    |
-                        (RADIO_PCNF1_ENDIAN_Big << RADIO_PCNF1_ENDIAN_Pos)           |
-                        (PACKET1_BASE_ADDRESS_LENGTH << RADIO_PCNF1_BALEN_Pos)       |
-                        (PACKET1_STATIC_LENGTH << RADIO_PCNF1_STATLEN_Pos)           |
-                        (PACKET1_PAYLOAD_SIZE << RADIO_PCNF1_MAXLEN_Pos);
-
-    // CRC Config
-    NRF_RADIO->CRCCNF = (RADIO_CRCCNF_LEN_Two << RADIO_CRCCNF_LEN_Pos); // Number of checksum bits
-    NRF_RADIO->CRCINIT = 0xFFFFUL;      // Initial value
-    NRF_RADIO->CRCPOLY = 0x11021UL;     // CRC poly: x^16+x^12^x^5+1
-
-    // Enable interrupt for end event
-    NRF_RADIO->INTENSET = RADIO_INTENSET_END_Msk;
-
-    // Set all shorts so that RSSI is measured and only END is required interrupt
-    NRF_RADIO->SHORTS = RADIO_SHORTS_READY_START_Msk;
-    NRF_RADIO->SHORTS |= RADIO_SHORTS_ADDRESS_RSSISTART_Msk;
-    NRF_RADIO->SHORTS |= RADIO_SHORTS_DISABLED_TXEN_Msk;
-    NRF_RADIO->SHORTS |= RADIO_SHORTS_DISABLED_RSSISTOP_Enabled;
-
-    // Set RX buffer and start RX
-    //NRF_RADIO->PACKETPTR = (uint32_t)&data;
-    NRF_RADIO->TASKS_RXEN = 1U;
-    IRQ_CONNECT(RADIO_IRQn, 3, radio_isr, NULL, 0);
+    // Acquire RSSI at radio address
+    //nrf_radio_shorts_enable(NRF_RADIO, NRF_RADIO_SHORT_ADDRESS_RSSISTART_MASK | NRF_RADIO_SHORT_DISABLED_RSSISTOP_MASK);
+    nrf_radio_shorts_enable(NRF_RADIO, RADIO_SHORTS_READY_START_Msk | RADIO_SHORTS_END_DISABLE_Msk | RADIO_SHORTS_ADDRESS_RSSISTART_Msk | RADIO_SHORTS_DISABLED_TXEN_Msk | RADIO_SHORTS_DISABLED_RSSISTOP_Enabled);
+    
+    // Enable disabled interrupt only, the rest is handled by shorts
+    //nrf_radio_int_enable(NRF_RADIO, NRF_RADIO_INT_DISABLED_MASK);
+    nrf_radio_int_enable(NRF_RADIO,RADIO_INTENSET_END_Msk);
+    IRQ_CONNECT(RADIO_IRQn, 2, radio_isr, NULL, 0);
     irq_enable(RADIO_IRQn);
+
+    nrf_radio_task_trigger(NRF_RADIO, NRF_RADIO_TASK_RXEN);
+
 }
 
 

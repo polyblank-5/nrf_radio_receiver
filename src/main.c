@@ -4,7 +4,10 @@
 //#include "zephyr/drivers/gpio.h"
 #include "hal/nrf_gpio.h"
 //#include "nrf_gpio.h"
+#include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
+#include <hal/nrf_radio.h>
+#include <zephyr/irq.h>
 
 /* Public API */
 
@@ -55,18 +58,40 @@ static uint32_t bytewise_bitswap(uint32_t inp)
 
 
 #define RADIO_CHANNEL 80  // Should match the transmitter's channel
+static void radio_isr(void *arg){
+    
+}
 
 void radio_init(void) {
-    NRF_RADIO->TXPOWER = RADIO_TXPOWER_TXPOWER_0dBm;
-    NRF_RADIO->FREQUENCY = RADIO_CHANNEL;
-    NRF_RADIO->MODE = RADIO_MODE_MODE_Nrf_2Mbit;
+     NRF_RADIO->POWER = 1;
 
-    NRF_RADIO->SHORTS = 0;
+
+    NRF_RADIO->TXPOWER = (RADIO_TXPOWER_TXPOWER_0dBm << RADIO_TXPOWER_TXPOWER_Pos);
+
+
+        NRF_RADIO->MODE = (RADIO_MODE_MODE_Nrf_2Mbit << RADIO_MODE_MODE_Pos);
+
+
+    NRF_RADIO->FREQUENCY = 80;
+
+
+    // Radio address config
+    // We use local addresses 0 and 1
+    //  * local address 0 is the unique address of the Crazyflie, used for 1-to-1 communication.
+    //    This can be set dynamically and the current address is stored in EEPROM.
+    //  * local address 1 is used for broadcasts
+    //    This is currently 0xFFE7E7E7E7.
+    NRF_RADIO->PREFIX0 = 0xC4C3FF00UL | (bytewise_bitswap(address >> 32) & 0xFF);  // Prefix byte of addresses 3 to 0
+    NRF_RADIO->PREFIX1 = 0xC5C6C7C8UL;  // Prefix byte of addresses 7 to 4
+    NRF_RADIO->BASE0   = bytewise_bitswap((uint32_t)address);  // Base address for prefix 0
+    NRF_RADIO->BASE1   = 0xE7E7E7E7UL;  // Base address for prefix 1-7
+    NRF_RADIO->TXADDRESS = 0x00UL;      // Set device address 0 to use when transmitting
+    NRF_RADIO->RXADDRESSES = (1<<0) | (1<<1);    // Enable device address 0 and 1 to use which receiving
 
     // Packet configuration
     NRF_RADIO->PCNF0 = (PACKET0_S1_SIZE << RADIO_PCNF0_S1LEN_Pos) |
-                      (PACKET0_S0_SIZE << RADIO_PCNF0_S0LEN_Pos) |
-                      (PACKET0_PAYLOAD_SIZE << RADIO_PCNF0_LFLEN_Pos);
+                        (PACKET0_S0_SIZE << RADIO_PCNF0_S0LEN_Pos) |
+                        (PACKET0_PAYLOAD_SIZE << RADIO_PCNF0_LFLEN_Pos);
 
     // Packet configuration
     NRF_RADIO->PCNF1 = (RADIO_PCNF1_WHITEEN_Disabled << RADIO_PCNF1_WHITEEN_Pos)    |
@@ -74,29 +99,26 @@ void radio_init(void) {
                         (PACKET1_BASE_ADDRESS_LENGTH << RADIO_PCNF1_BALEN_Pos)       |
                         (PACKET1_STATIC_LENGTH << RADIO_PCNF1_STATLEN_Pos)           |
                         (PACKET1_PAYLOAD_SIZE << RADIO_PCNF1_MAXLEN_Pos);
-                        
-    NRF_RADIO->PREFIX0 = 0xC4C3FF00UL | (bytewise_bitswap(address >> 32) & 0xFF);  // Prefix byte of addresses 3 to 0
-    NRF_RADIO->PREFIX1 = 0xC5C6C7C8UL;  // Prefix byte of addresses 7 to 4
-    NRF_RADIO->BASE0   = bytewise_bitswap((uint32_t)address);  // Base address for prefix 0
-    NRF_RADIO->BASE1   = 0xE7E7E7E7UL;  // Base address for prefix 1-7
-    NRF_RADIO->TXADDRESS = 0x00UL;      // Set device address 0 to use when transmitting
-    NRF_RADIO->RXADDRESSES = (1<<0) | (1<<1);    // Enable device address 0 and 1 to use which rec
-    
-    /*   
-    NRF_RADIO->PREFIX0 = 0x000000e7;  // Prefix byte of addresses 3 to 0
-    //NRF_RADIO->PREFIX1 = 0xC5C6C7C8UL;  // Prefix byte of addresses 7 to 4
-    NRF_RADIO->BASE0   = 0xe7e7e7e7;  // Base address for prefix 0
-    //NRF_RADIO->BASE1   = 0xE7E7E7E7UL;  // Base address for prefix 1-7
-    NRF_RADIO->TXADDRESS = 0x00UL;      // Set device address 0 to use when transmitting
-    NRF_RADIO->RXADDRESSES = (1<<0) | (1<<1);    // Enable device address 0 and 1 to use which rec
-    */
-    /*   
+
     // CRC Config
     NRF_RADIO->CRCCNF = (RADIO_CRCCNF_LEN_Two << RADIO_CRCCNF_LEN_Pos); // Number of checksum bits
     NRF_RADIO->CRCINIT = 0xFFFFUL;      // Initial value
     NRF_RADIO->CRCPOLY = 0x11021UL;     // CRC poly: x^16+x^12^x^5+1
-    */
-    //NRF_RADIO->TASKS_RXEN = 1U;
+
+    // Enable interrupt for end event
+    NRF_RADIO->INTENSET = RADIO_INTENSET_END_Msk;
+
+    // Set all shorts so that RSSI is measured and only END is required interrupt
+    NRF_RADIO->SHORTS = RADIO_SHORTS_READY_START_Msk;
+    NRF_RADIO->SHORTS |= RADIO_SHORTS_ADDRESS_RSSISTART_Msk;
+    NRF_RADIO->SHORTS |= RADIO_SHORTS_DISABLED_TXEN_Msk;
+    NRF_RADIO->SHORTS |= RADIO_SHORTS_DISABLED_RSSISTOP_Enabled;
+
+    // Set RX buffer and start RX
+    //NRF_RADIO->PACKETPTR = (uint32_t)&data;
+    NRF_RADIO->TASKS_RXEN = 1U;
+    IRQ_CONNECT(RADIO_IRQn, 3, radio_isr, NULL, 0);
+    irq_enable(RADIO_IRQn);
 }
 
 
@@ -112,6 +134,8 @@ void radio_receive(struct esbPacket_s *data, uint8_t *length) {
 
     NRF_RADIO->TASKS_START = 1; // Start Radio
 
+    while (NRF_RADIO->EVENTS_ADDRESS == 0);
+
     while (NRF_RADIO->EVENTS_END == 0); // Packet received 
     NRF_RADIO->EVENTS_END = 0;
 
@@ -122,8 +146,10 @@ void radio_receive(struct esbPacket_s *data, uint8_t *length) {
 }
 
 int main(void) {
+    printk("Start");
     nrf_gpio_cfg_output(6); // LED on pin 20
-
+    k_msleep(100);
+    nrf_gpio_pin_toggle(6);
     radio_init();
 
     while (1) {
@@ -134,7 +160,7 @@ int main(void) {
         radio_receive(&message, &message_len);
 
         // Toggle an LED to indicate a reception
-        nrf_gpio_pin_toggle(20);
+        nrf_gpio_pin_toggle(6);
 
         // Process the received message (e.g., print it)
         if (message_len > 0) {

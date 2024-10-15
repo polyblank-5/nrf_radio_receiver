@@ -14,6 +14,12 @@ curl -L https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.16.0/t
 tools/build/fetch_dependencies
 pip install -r zephyr/scripts/requirements.txt
 ```
+## Build command
+
+```bash
+west build -b nrf52840dongle_nrf52840 -- -DDTC_OVERLAY_FILE=boards/arm/nrf52840dongle_nrf52840.overlay
+```
+
 
 # ESB / RADIO Examples
 

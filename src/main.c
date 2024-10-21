@@ -10,6 +10,9 @@
 #include <zephyr/irq.h>
 #include <nrfx_timer.h>
 
+
+#include <zephyr/logging/log.h>
+LOG_MODULE_REGISTER(usb);
 /* Public API */
 
 // S1 is used for compatibility with NRF24L0+. These three bits are used
@@ -93,7 +96,7 @@ void radio_init(void) {
 
     // Configure Addresses
     nrf_radio_base0_set(NRF_RADIO, 0xe7e7e7e7); // 0xE7E7E7E7 for fly
-    nrf_radio_prefix0_set(NRF_RADIO, 231);
+    nrf_radio_prefix0_set(NRF_RADIO, 0xe7);
     nrf_radio_txaddress_set(NRF_RADIO, 0);
     nrf_radio_rxaddresses_set(NRF_RADIO, 0x01u);
     
@@ -136,17 +139,17 @@ void radio_receive(struct esbPacket_s *data, uint8_t *length) {
 
     NRF_RADIO->TASKS_RXEN = 1; // Enable RX Mode
     while (NRF_RADIO->EVENTS_READY == 0); // Wait unit Radio is ramped up
-
+    LOG_DBG("Radio Ramped up");
     NRF_RADIO->TASKS_START = 1; // Start Radio
 
     while (NRF_RADIO->EVENTS_ADDRESS == 0);
-
+    LOG_DBG("Address matched");
     while (NRF_RADIO->EVENTS_END == 0); // Packet received 
     NRF_RADIO->EVENTS_END = 0;
-
+    LOG_DBG("Packet  received");
     NRF_RADIO->TASKS_DISABLE = 1; // Disable  Radio
     while (NRF_RADIO->EVENTS_DISABLED == 0); // Wait until Radio has been disabled
-
+    LOG_DBG("Radio Dissabled");
     *length = NRF_RADIO->RXMATCH; // received address 
 }
 

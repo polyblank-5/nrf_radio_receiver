@@ -91,21 +91,21 @@ void radio_init(void) {
     nrf_radio_mode_set(NRF_RADIO, NRF_RADIO_MODE_NRF_2MBIT); // 1 byte Preamble len 0xAA or 0x55 
     nrf_radio_frequency_set(NRF_RADIO, 2480); //80 for fly 2447 in original //TODO have to check if 80 is correct maybe 2480 or someting
 
-    /*// Configure Addresses
+    // Configure Addresses
     nrf_radio_base0_set(NRF_RADIO, 0xe7e7e7e7); // 0xE7E7E7E7 for fly
-    nrf_radio_prefix0_set(NRF_RADIO, 0x000000e7);
+    nrf_radio_prefix0_set(NRF_RADIO, 231);
     nrf_radio_txaddress_set(NRF_RADIO, 0);
     nrf_radio_rxaddresses_set(NRF_RADIO, 0x01u);
-    */
+    
     // Should be correct, doenst work with vanilla 
-    uint64_t address = 0xE7E7E7E7E7ULL;
+    /*uint64_t address = 0xE7E7E7E7E7ULL;
     nrf_radio_base0_set(NRF_RADIO,bytewise_bitswap((uint32_t)address));
     nrf_radio_base1_set(NRF_RADIO, 0xE7E7E7E7UL);
     nrf_radio_prefix0_set(NRF_RADIO,0xC4C3FF00UL | (bytewise_bitswap(address >> 32) & 0xFF));
     nrf_radio_prefix1_set(NRF_RADIO,0xC5C6C7C8UL);
     nrf_radio_txaddress_set(NRF_RADIO, 0);
     nrf_radio_rxaddresses_set(NRF_RADIO, (1<<0) | (1<<1));    
-    
+    */
 
     // Configure CRC
     nrf_radio_crc_configure(NRF_RADIO, 2, NRF_RADIO_CRC_ADDR_INCLUDE, 0x11021UL);
@@ -163,7 +163,7 @@ int main(void) {
 
         // Receive a message
         radio_receive(&message, &message_len);
-
+        printk("message received");
         // Toggle an LED to indicate a reception
         nrf_gpio_pin_toggle(6);
 

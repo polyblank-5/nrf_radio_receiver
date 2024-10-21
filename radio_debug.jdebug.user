@@ -1,0 +1,23 @@
+
+
+Breakpoint=/home/polyblank/Documents/IMRC/nRF52840/dongle_uart/radio_receiver_test/src/main.c:63, State=BP_STATE_ON
+Breakpoint=/home/polyblank/Documents/IMRC/nRF52840/dongle_uart/radio_receiver_test/src/main.c:121:63, State=BP_STATE_DISABLED
+Breakpoint=/home/polyblank/Documents/IMRC/nRF52840/dongle_uart/radio_receiver_test/src/main.c:148:16, State=BP_STATE_DISABLED
+OpenDocument="nrf_gpio.h", FilePath="/home/polyblank/Documents/IMRC/nRF52840/dongle_uart/radio_receiver_test/modules/hal/nordic/nrfx/hal/nrf_gpio.h", Line=642
+OpenDocument="main.c", FilePath="/home/polyblank/Documents/IMRC/nRF52840/dongle_uart/radio_receiver_test/src/main.c", Line=127
+OpenToolbar="Debug", Floating=0, x=0, y=0
+OpenWindow="Registers 1", DockArea=RIGHT, x=0, y=1, w=619, h=416, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, FilteredItems=[], RefreshRate=1
+OpenWindow="Disassembly", DockArea=RIGHT, x=0, y=0, w=619, h=195, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Break & Tracepoints", DockArea=LEFT, x=0, y=0, w=300, h=287, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, VectorCatchIndexMask=254
+OpenWindow="Memory 1", DockArea=BOTTOM, x=0, y=0, w=950, h=318, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0, EditorAddress=0x40001ED0
+OpenWindow="Functions", DockArea=LEFT, x=0, y=1, w=300, h=120, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Memory Usage", DockArea=LEFT, x=0, y=2, w=300, h=198, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+OpenWindow="Console", DockArea=BOTTOM, x=1, y=0, w=898, h=318, FilterBarShown=0, TotalValueBarShown=0, ToolBarShown=0
+SmartViewPlugin="", Page="", Toolbar="Hidden", Window="SmartView 1"
+TableHeader="Vector Catches", SortCol="", SortOrder="ASCENDING", VisibleCols=["";"Vector Catch";"Description"], ColWidths=[50;300;500]
+TableHeader="Break & Tracepoints", SortCol="", SortOrder="ASCENDING", VisibleCols=["";"Type";"Location";"Extras"], ColWidths=[100;100;119;100]
+TableHeader="Functions", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Address";"Size";"#Insts";"Source"], ColWidths=[1449;100;100;100;903]
+TableHeader="Power Sampling", SortCol="None", SortOrder="ASCENDING", VisibleCols=["Index";"Time";"Ch 0"], ColWidths=[100;100;100]
+TableHeader="Registers 1", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Description"], ColWidths=[203;218;198]
+TableHeader="RegisterSelectionDialog", SortCol="None", SortOrder="ASCENDING", VisibleCols=[], ColWidths=[]
+TableHeader="TargetExceptionDialog", SortCol="Name", SortOrder="ASCENDING", VisibleCols=["Name";"Value";"Address";"Description"], ColWidths=[200;100;100;359]

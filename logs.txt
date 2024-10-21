@@ -1,0 +1,40 @@
+[00:00:44.182,098] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x3 bmRequestType 0x40 len 0
+--- 3 messages dropped ---
+[00:00:44.182,342] <dbg> usb: esb_set_channel: channel 2
+[00:00:44.182,495] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x20 bmRequestType 0x40 len 0
+[00:00:44.182,525] <dbg> usb: crazyradio_vendor_handler: Setting radio Continious carrier false
+[00:00:44.182,800] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x2 bmRequestType 0x40 len 5
+[00:00:44.182,830] <dbg> usb: crazyradio_vendor_handler: Setting radio address e7e7e7e7e7
+[00:00:44.182,830] <dbg> usb: esb_set_address: base0 3890735079
+[00:00:44.182,861] <dbg> usb: esb_set_address: prefix0 231
+[00:00:44.182,983] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x4 bmRequestType 0x40 len 0
+[00:00:44.183,013] <dbg> usb: crazyradio_vendor_handler: Setting radio power 3
+[00:00:44.183,166] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x6 bmRequestType 0x40 len 0
+[00:00:44.183,166] <dbg> usb: crazyradio_vendor_handler: Setting radio ARC 3
+[00:00:44.183,349] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x5 bmRequestType 0x40 len 0
+[00:00:44.183,349] <dbg> usb: crazyradio_vendor_handler: Setting radio ARD 160
+[00:00:44.183,502] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x10 bmRequestType 0x40 len 0
+[00:00:44.183,532] <dbg> usb: crazyradio_vendor_handler: Setting radio ACK Enable true
+[00:00:44.183,868] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x2 bmRequestType 0x40 len 5
+[00:00:44.183,898] <dbg> usb: crazyradio_vendor_handler: Setting radio address ffe7e7e7e7
+[00:00:44.183,898] <dbg> usb: esb_set_address: base0 3890735079
+[00:00:44.183,929] <dbg> usb: esb_set_address: prefix0 255
+[00:00:44.184,082] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x1 bmRequestType 0x40 len 0
+[00:00:44.184,082] <dbg> usb: crazyradio_vendor_handler: Setting radio channel 80
+[00:00:44.184,112] <dbg> usb: esb_set_channel: channel 80
+[00:00:44.184,234] <dbg> usb: crazyradio_vendor_handler: Class request: bRequest 0x10 bmRequestType 0x40 len 0
+[00:00:44.184,295] <dbg> usb: crazyradio_vendor_handler: Setting radio ACK Enable false
+[00:00:44.184,509] <dbg> usb: crazyradio_out_cb: ep 0x1, bytes to read 16 
+[00:00:49.432,373] <dbg> usb: crazyradio_out_cb: ep 0x1, bytes to read 16 
+[00:00:54.682,647] <dbg> usb: crazyradio_out_cb: ep 0x1, bytes to read 3 
+SEGGER J-Link V8.10 - Real time terminal output
+SEGGER J-Link (unknown) V1.0, SN=801038809
+Process: Ozone
+SEGGER J-Link V8.10 - Real time terminal output
+SEGGER J-Link (unknown) V1.0, SN=801038809
+Process: Ozone
+*** Booting Zephyr OS build zephyr-v3.2.0  ***
+Start*** Booting Zephyr OS build zephyr-v3.2.0  ***
+Start*** Booting Zephyr OS build zephyr-v3.2.0  ***
+Start*** Booting Zephyr OS build zephyr-v3.2.0  ***
+Start
